@@ -56,6 +56,16 @@
         tools:text="Pick time" />
 
     <Button
+        android:id="@+id/pickIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pick Icon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pickTime"
+        tools:text="Pick Icon" />
+
+    <Button
         android:id="@+id/add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -65,5 +75,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/timeView"
         tools:text="Add reminder" />
+
+    <ImageView
+        android:id="@+id/imageViewIcon"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="159dp"
+        android:layout_marginLeft="159dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="144dp"
+        android:layout_marginRight="144dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:scaleType="fitCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_launcher_background" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

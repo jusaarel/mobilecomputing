@@ -1,8 +1,10 @@
 package com.example.mobilecomputing.ui.login
 
 import MyListViewItem
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -12,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import com.example.mobilecomputing.EditReminder
 import com.example.mobilecomputing.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -23,24 +26,19 @@ import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
+
+
+    public lateinit var db : AppDatabase
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
-
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "database-name"
-        ).allowMainThreadQueries().build()
+        db = AppDatabase.getInstance(applicationContext)
 
         val userDao = db.ReminderSQLDao()
-
-        var Reminder = ReminderSQL(2,"laadidaa")
-
-
 
         var Reminders : List<ReminderSQL>
 
@@ -57,11 +55,14 @@ class MainActivity : AppCompatActivity() {
         val logout = findViewById<Button>(R.id.logout)
         val listview = findViewById<ListView>(R.id.listview)
 
-        val listlist = ArrayList<String>()
+        val listlist = ArrayList<ReminderListItem>()
 
         for (reminder in Reminders)
         {
-            listlist.add(reminder.message ?: "default")
+
+            var item = ReminderListItem(reminder.message ?: "default", reminder.iconId ?: 0)
+
+            listlist.add(item)
         }
 
 
@@ -75,13 +76,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    class ReminderListItem(val n : String, val ID : Int) {
+        public var name : String = n
+        public var resId : Int = ID
+    }
+
     override fun onResume()
     {
         super.onResume()
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "database-name"
-        ).allowMainThreadQueries().build()
+        val db = AppDatabase.getInstance(applicationContext)
 
         val userDao = db.ReminderSQLDao()
 
@@ -92,16 +96,19 @@ class MainActivity : AppCompatActivity() {
 
         val listview = findViewById<ListView>(R.id.listview)
 
-        val listlist = ArrayList<String>()
+        val listlist = ArrayList<ReminderListItem>()
 
         for (reminder in Reminders)
         {
-            listlist.add(reminder.message ?: "default")
+
+            var item = ReminderListItem(reminder.message ?: "default", reminder.iconId ?: 0)
+
+            listlist.add(item)
         }
 
 
         val adapter = MyListViewItem(this, listlist)
-        //val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listlist)
         listview.adapter = adapter
+
     }
 }

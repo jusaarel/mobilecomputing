@@ -1,5 +1,7 @@
 package com.example.mobilecomputing.ui.login
 
+import android.content.Context
+import android.util.Log
 import androidx.room.*
 import java.util.*
 
@@ -20,12 +22,21 @@ class Reminder(val name : String, val time : Date) {
 
 @Entity
 data class ReminderSQL(
-        @PrimaryKey (autoGenerate = true)
+    @PrimaryKey (autoGenerate = true)
         val id : Int = 0,
-        @ColumnInfo(name = "message") val message: String?
-        //@ColumnInfo(name = "creation_time") val creation_time: Date
+    @ColumnInfo(name = "message") var message: String?,
+    @ColumnInfo(name = "creation_time") val creation_time: Long = Calendar.getInstance().timeInMillis,
+    @ColumnInfo(name = "creator_id") val creator_id: Int = 1,
+    @ColumnInfo(name = "reminder_seen") val reminder_seen: Long?,
+    @ColumnInfo(name = "reminder_time") var reminder_time: Long,
+    @ColumnInfo(name = "location_x") val location_x: Float?,
+    @ColumnInfo(name = "location_y") val location_y: Float?,
+    @ColumnInfo(name = "icon") val iconId: Int?
 
-)
+
+
+
+        )
 
 
 @Dao
@@ -41,9 +52,50 @@ interface ReminderSQLDao {
 
     @Delete
     fun delete(user: ReminderSQL)
+
+    @Update
+    fun update(item: ReminderSQL)
 }
 
 @Database(entities = arrayOf(ReminderSQL::class), version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun ReminderSQLDao(): ReminderSQLDao
+
+    companion object {
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            if (INSTANCE == null) {
+                INSTANCE = Room.databaseBuilder(
+                        context, AppDatabase::class.java,
+                        "database-name")
+                        .allowMainThreadQueries()
+                        .build()
+            }
+            return INSTANCE as AppDatabase
+        }
+        fun delete(item : String)
+        {
+            val dao = INSTANCE?.ReminderSQLDao()
+            val find = dao?.findByName(item ?: "default")
+            if(find != null)
+            {
+                dao?.delete(find)
+            }
+        }
+
+        fun update(item: String, newName : String, time: Long)
+        {
+            val dao = INSTANCE?.ReminderSQLDao()
+            var find = dao?.findByName(item ?: "default")
+
+            if(find != null)
+            {
+                Log.d("asd", "editing entry")
+                find.message = newName
+                find.reminder_time = time
+                dao?.update(find)
+            }
+        }
+    }
 }
