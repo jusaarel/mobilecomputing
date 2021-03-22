@@ -1,24 +1,30 @@
 package com.example.mobilecomputing.ui.login
 
 import android.app.DatePickerDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent.getActivity
 import android.app.TimePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.mobilecomputing.R
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class ReminderActivity : AppCompatActivity() {
 
@@ -27,13 +33,12 @@ class ReminderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder)
 
-
-
+        val NotificationCheck = findViewById<CheckBox>(R.id.AddNotification)
         val reminderText = findViewById<EditText>(R.id.reminderName)
         val mPickTimeBtn = findViewById<Button>(R.id.pickTime)
         val textView     = findViewById<TextView>(R.id.timeView)
-        val addBtn = findViewById<Button>(R.id.add);
-        val pickIcon = findViewById<Button>(R.id.pickIcon);
+        val addBtn = findViewById<Button>(R.id.add)
+        val pickIcon = findViewById<Button>(R.id.pickIcon)
 
         var day : Int = 0
         var year : Int = 0
@@ -102,6 +107,16 @@ class ReminderActivity : AppCompatActivity() {
 
             var reminder = ReminderSQL(0, reminderName, reminder_time = time, location_x = null, location_y = null, reminder_seen = null, iconId = null)
 
+            if(NotificationCheck.isChecked)
+            {
+                Log.d("TIME", time.toString())
+                ReminderActivity.setReminderWithWorkManager(
+                        applicationContext,
+                        time,
+                        reminderName
+                )
+            }
+
             val db = Room.databaseBuilder(
                 applicationContext,
                 AppDatabase::class.java, "database-name"
@@ -109,6 +124,10 @@ class ReminderActivity : AppCompatActivity() {
 
             val userDao = db.ReminderSQLDao()
             userDao.insertAll(reminder)
+
+
+
+
             Log.d("REMINDER", reminder.message);
         }
 
@@ -131,7 +150,7 @@ class ReminderActivity : AppCompatActivity() {
         }
 
 
-
+        val NotificationCheck = findViewById<CheckBox>(R.id.AddNotification)
         val reminderText = findViewById<EditText>(R.id.reminderName)
         val mPickTimeBtn = findViewById<Button>(R.id.pickTime)
         val textView     = findViewById<TextView>(R.id.timeView)
@@ -205,6 +224,16 @@ class ReminderActivity : AppCompatActivity() {
 
             var reminder = ReminderSQL(0, reminderName, reminder_time = time, location_x = null, location_y = null, reminder_seen = null, iconId = resId)
 
+            if(NotificationCheck.isChecked)
+            {
+                Log.d("TIME", time.toString())
+                ReminderActivity.setReminderWithWorkManager(
+                        applicationContext,
+                        time,
+                        reminderName
+                )
+            }
+
             val db = Room.databaseBuilder(
                 applicationContext,
                 AppDatabase::class.java, "database-name"
@@ -214,5 +243,69 @@ class ReminderActivity : AppCompatActivity() {
             userDao.insertAll(reminder)
             Log.d("REMINDER", reminder.message);
         }
+    }
+
+    companion object {
+        //val paymenthistoryList = mutableListOf<PaymentInfo>()
+
+        fun showNofitication(context: Context, message: String) {
+
+            val CHANNEL_ID = "BANKING_APP_NOTIFICATION_CHANNEL"
+            var notificationId = Random.nextInt(10, 1000) + 5
+            // notificationId += Random(notificationId).nextInt(1, 500)
+
+            var notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.info)
+                    .setContentTitle(context.getString(R.string.app_name))
+                    .setContentText(message)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setGroup(CHANNEL_ID)
+
+            val notificationManager =
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Notification chancel needed since Android 8
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                        CHANNEL_ID,
+                        context.getString(R.string.app_name),
+                        NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = context.getString(R.string.app_name)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            notificationManager.notify(notificationId, notificationBuilder.build())
+
+        }
+
+
+        fun setReminderWithWorkManager(
+                context: Context,
+                timeInMillis: Long,
+                message: String
+        ) {
+
+            Log.d("REMINDER", "workmanager");
+            val reminderParameters = Data.Builder()
+                    .putString("message", message)
+                    .build()
+
+            // get minutes from now until reminder
+            var minutesFromNow = 0L
+            Log.d("REMINDER", minutesFromNow.toString());
+            if (timeInMillis > System.currentTimeMillis())
+                minutesFromNow = timeInMillis - System.currentTimeMillis()
+
+            val reminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+                    .setInputData(reminderParameters)
+                    .setInitialDelay(minutesFromNow, TimeUnit.MILLISECONDS)
+                    .build()
+
+            WorkManager.getInstance(context).enqueue(reminderRequest)
+        }
+
     }
 }

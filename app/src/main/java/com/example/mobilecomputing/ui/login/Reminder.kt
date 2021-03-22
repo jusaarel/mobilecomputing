@@ -1,9 +1,36 @@
 package com.example.mobilecomputing.ui.login
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.room.*
+import androidx.work.*
+import com.example.mobilecomputing.R
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
+
+
+class ReminderWorker(appContext:Context, workerParameters: WorkerParameters) :
+        Worker(appContext,workerParameters) {
+
+    override fun doWork(): Result {
+        val text = inputData.getString("message") // this comes from the reminder parameters
+        ReminderActivity.showNofitication(applicationContext,text!!)
+        return   Result.success()
+    }
+
+
+}
+class ReminderHistory : AppCompatActivity() {
+
+
+
+}
 
 class Reminder(val name : String, val time : Date) {
 

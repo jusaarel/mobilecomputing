@@ -62,7 +62,10 @@ class MainActivity : AppCompatActivity(){
 
             var item = ReminderListItem(reminder.message ?: "default", reminder.iconId ?: 0)
 
-            listlist.add(item)
+            if(reminder.reminder_time < Calendar.getInstance().timeInMillis && reminder.location_x == null)
+            {
+                listlist.add(item)
+            }
         }
 
 
@@ -103,7 +106,10 @@ class MainActivity : AppCompatActivity(){
 
             var item = ReminderListItem(reminder.message ?: "default", reminder.iconId ?: 0)
 
-            listlist.add(item)
+            if(reminder.reminder_time < Calendar.getInstance().timeInMillis && reminder.location_x == null)
+            {
+                listlist.add(item)
+            }
         }
 
 
